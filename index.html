@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FestaBot</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #ffffff, #bfbfbf);
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-right: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo img {
+            width: 55px;
+            margin-right: 10px;
+        }
+
+        .logo h1 {
+            color: rgb(43, 43, 43);
+            font-size: 24px;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .menu button {
+            background: rgba(255,255,255,0.7);
+            border: none;
+            padding: 15px;
+            border-radius: 14px;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #333;
+        }
+
+        .menu button:hover {
+            background: rgb(48, 48, 48);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 30px;
+        }
+
+        #painel-lateral {
+            width: 500px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+        }
+
+        #chat-area {
+            width: 500px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+
+            /* 🔥 melhora o scroll */
+            scroll-behavior: smooth;
+        }
+
+        .mensagem-user {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .bubble-user {
+            background: rgb(48, 48, 48);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 18px 18px 0 18px;
+            max-width: 75%;
+        }
+
+        .mensagem-bot {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .bubble-bot {
+            background: white;
+            color: black;
+            padding: 14px 18px;
+            border-radius: 18px 18px 18px 0;
+            max-width: 75%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            line-height: 1.6;
+
+            white-space: pre-wrap;
+        }
+
+        .chat-box {
+            width: 500px;
+            display: flex;
+            background: white;
+            border-radius: 30px;
+            padding: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        #mensagem {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 16px;
+
+            resize: none;
+            height: 50px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .chat-box button {
+            background: white;
+            border: 1px solid rgb(82, 82, 82);
+            color: black;
+            padding: 14px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chat-box button:hover {
+            background: rgb(70, 69, 69);
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="sidebar">
+
+        <div class="logo">
+            <img src="static/festabot.png" alt="Robô">
+            <h1>FestaBot</h1>
+        </div>
+
+        <div class="menu">
+            <button onclick="novoChat()">➕ Novo chat</button>
+            <button onclick="abrirAjuda()">❓ Ajuda</button>
+            <button onclick="abrirConfiguracoes()">⚙️ Configurações</button>
+        </div>
+
+    </div>
+
+    <div class="main">
+
+        <div id="painel-lateral"></div>
+
+        <div id="chat-area"></div>
+
+        <div class="chat-box">
+
+            <textarea
+                id="mensagem"
+                placeholder="Digite sua mensagem..."
+                onkeydown="pressionarEnter(event)"
+            ></textarea>
+
+            <button onclick="mostrarMensagem()">Enviar</button>
+
+        </div>
+
+    </div>
+
+<script>
+
+function typeMessage(element, text, speed = 15) {
+    let i = 0;
+    element.textContent = "";
+
+    const chatArea = document.getElementById("chat-area");
+
+    function typing() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+
+            // 🔥 AUTO SCROLL AQUI (novo)
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            setTimeout(typing, speed);
+        }
+    }
+
+    typing();
+}
+
+async function mostrarMensagem() {
+
+    const input = document.getElementById("mensagem");
+    const texto = input.value;
+
+    if (texto.trim() === "") return;
+
+    const chatArea = document.getElementById("chat-area");
+
+    chatArea.innerHTML += `
+        <div class="mensagem-user">
+            <div class="bubble-user">${texto}</div>
+        </div>
+    `;
+
+    input.value = "";
+
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    const resposta = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensagem: texto })
+    });
+
+    const dados = await resposta.json();
+
+    const botWrapper = document.createElement("div");
+    botWrapper.className = "mensagem-bot";
+
+    const botBubble = document.createElement("div");
+    botBubble.className = "bubble-bot";
+    botBubble.textContent = "digitando...";
+
+    botWrapper.appendChild(botBubble);
+    chatArea.appendChild(botWrapper);
+
+    setTimeout(() => {
+
+        typeMessage(botBubble, dados.resposta, 15);
+
+    }, 800);
+}
+
+// ENTER
+function pressionarEnter(event) {
+
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        mostrarMensagem();
+    }
+}
+
+// NOVO CHAT
+async function novoChat() {
+    await fetch("/novo-chat");
+    document.getElementById("chat-area").innerHTML = "";
+    document.getElementById("painel-lateral").style.display = "none";
+}
+
+// AJUDA
+async function abrirAjuda() {
+    const resposta = await fetch("/ajuda");
+    const dados = await resposta.json();
+
+    const painel = document.getElementById("painel-lateral");
+    painel.style.display = "block";
+    painel.innerHTML = `<h2>❓ Ajuda</h2><p>${dados.mensagem}</p>`;
+}
+
+// CONFIG
+async function abrirConfiguracoes() {
+    const resposta = await fetch("/configuracoes");
+    const dados = await resposta.json();
+
+    const painel = document.getElementById("painel-lateral");
+    painel.style.display = "block";
+
+    painel.innerHTML = `
+        <h2>⚙️ Configurações</h2>
+        <p><b>Tema:</b> ${dados.tema}</p>
+        <p><b>Modelo:</b> ${dados.modelo}</p>
+    `;
+}
+
+</script>
+
+</body>
+</html>
